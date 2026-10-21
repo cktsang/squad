@@ -48,9 +48,9 @@ The squad runs as a **sidecar**: this repo holds only the agent, and it works on
 
 | Role              | Model      | Responsibility                                                                      |
 | ----------------- | ---------- | ----------------------------------------------------------------------------------- |
-| orchestrator      | Opus 5.5   | Plans, routes work, tracks the board, talks to you                                  |
-| clarifier         | Opus 5.5   | Asks rounds of questions until the idea is clear                                    |
-| spec-writer       | Opus 5.5   | Full functional spec: features, flows, data, non-functional requirements            |
+| orchestrator      | Sonnet 5.5 | Plans, routes work, tracks the board, talks to you                                  |
+| clarifier         | Sonnet 5.5 | Asks rounds of questions until the idea is clear                                    |
+| spec-writer       | Sonnet 5.5 | Full functional spec: features, flows, data, non-functional requirements            |
 | architect         | Opus 5.5   | Stack, layout, data model, and the lint/typecheck/test commands                     |
 | ticket-writer     | Sonnet 5.5 | Tickets with user stories, use cases, Given/When/Then criteria                      |
 | context-scout     | Haiku 5.5  | Gathers just the context a ticket needs into a context pack                         |
@@ -63,7 +63,7 @@ The squad runs as a **sidecar**: this repo holds only the agent, and it works on
 | docs-writer       | Haiku 5.5  | Keeps README and CHANGELOG current                                                  |
 | retro             | Sonnet 5.5 | Milestone retrospective                                                             |
 
-Rule of thumb: Opus for decisions made once that shape everything downstream (and for review, which only reads a diff), Sonnet for per-ticket work, Haiku for fast lookup and running commands.
+Rule of thumb: Sonnet by default, Opus only where judgment pays off and calls are rare or small (the architect runs once per project; the reviewer only reads a diff), Haiku for fast lookup and running commands.
 
 ## Project layout
 
