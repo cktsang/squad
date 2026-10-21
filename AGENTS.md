@@ -50,6 +50,14 @@ eve deploy --non-interactive --yes [--project <name-or-id>]
 
 A setup may report `eve link` as a prerequisite; run it, then retry the continuation. When a completed setup event has `deploymentRequired: true`, run the `next` command it reports.
 
+## Keep dependencies pinned
+
+eve is in beta, and floating `ai`/`@ai-sdk/*` or `@vercel/connect` versions have broken eve apps at runtime. Every dependency is pinned exactly (`.npmrc` sets `save-exact`), and `package-lock.json` is committed.
+
+- Install from the lockfile with `npm ci`, not `npm install`.
+- Upgrade one package at a time with an exact version (`npm install eve@<version>`), then run `npm run check` and commit `package.json` and `package-lock.json` together.
+- Never install `canary`, `beta`, or `alpha` tags of `ai`, `@ai-sdk/*`, `eve`, or `@vercel/*`; `npm run check:deps` rejects them.
+
 ## Validate the change
 
 Run the validation the task requests. When it does not establish the behavior you changed, run the narrowest relevant check.
