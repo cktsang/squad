@@ -2,7 +2,15 @@
 
 import type { UserContent } from "ai";
 import { useEveAgent } from "eve/react";
-import { AlertCircleIcon, BrainIcon, PlusIcon, SquareIcon } from "lucide-react";
+import {
+  AlertCircleIcon,
+  BrainIcon,
+  FileTextIcon,
+  PaperclipIcon,
+  PlusIcon,
+  SquareIcon,
+  XIcon,
+} from "lucide-react";
 import { useRef, useState } from "react";
 import {
   Conversation,
@@ -28,6 +36,10 @@ import { WEB_CHAT_AGENT } from "@/app/eve-agent";
 const DEFAULT_AGENT_NAME = "eve-agent";
 const AGENT_NAME = WEB_CHAT_AGENT ?? DEFAULT_AGENT_NAME;
 
+// What the model can read: images and PDFs natively, everything else as text.
+const ATTACHMENT_ACCEPT = "image/*,application/pdf,text/*,.md,.json,.csv,.yaml,.yml";
+const MAX_ATTACHMENT_BYTES = 20 * 1024 * 1024;
+
 export function AgentChat({
   sessionId,
   sessionless = false,
@@ -36,6 +48,7 @@ export function AgentChat({
   readonly sessionless?: boolean;
 }) {
   const [cancellationError, setCancellationError] = useState<string>();
+  const [attachmentError, setAttachmentError] = useState<string>();
   const [hasInputText, setHasInputText] = useState(false);
   const hasSubmittedMessage = useRef(false);
   const replaceSessionRoute = (nextSessionId: string) => {
@@ -104,6 +117,7 @@ export function AgentChat({
 
     setHasInputText(false);
     setCancellationError(undefined);
+    setAttachmentError(undefined);
     hasSubmittedMessage.current = true;
     if (agent.session !== undefined) replaceSessionRoute(agent.session.sessionId);
     const options = isBusy ? { turnPolicy: "steer" as const } : undefined;
@@ -130,12 +144,22 @@ export function AgentChat({
   };
 
   const composer = (
-    <PromptInput onSubmit={handleSubmit}>
+    <PromptInput
+      accept={ATTACHMENT_ACCEPT}
+      globalDrop
+      maxFileSize={MAX_ATTACHMENT_BYTES}
+      multiple
+      onError={(error) => setAttachmentError(error.message)}
+      onSubmit={handleSubmit}
+    >
+      <ComposerAttachments error={attachmentError} />
       <PromptInputTextarea
+        className="pb-12"
         disabled={isResuming}
         onChange={(event) => setHasInputText(event.currentTarget.value.trim().length > 0)}
-        placeholder="Send a message…"
+        placeholder="Send a message, or attach files…"
       />
+      <AttachButton disabled={isResuming} onOpen={() => setAttachmentError(undefined)} />
       <ComposerAction
         hasInputText={hasInputText}
         isBusy={isBusy}
@@ -236,6 +260,64 @@ function ComposerAction({
     >
       <SquareIcon className="size-3 fill-current" />
     </PromptInputButton>
+  );
+}
+
+function AttachButton({
+  disabled,
+  onOpen,
+}: {
+  readonly disabled: boolean;
+  readonly onOpen: () => void;
+}) {
+  const attachments = usePromptInputAttachments();
+
+  return (
+    <PromptInputButton
+      aria-label="Attach files"
+      className="absolute bottom-2.5 left-2.5 rounded-full"
+      disabled={disabled}
+      onClick={() => {
+        onOpen();
+        attachments.openFileDialog();
+      }}
+      variant="ghost"
+    >
+      <PaperclipIcon className="size-4" />
+    </PromptInputButton>
+  );
+}
+
+function ComposerAttachments({ error }: { readonly error?: string }) {
+  const attachments = usePromptInputAttachments();
+  if (attachments.files.length === 0 && error === undefined) return null;
+
+  return (
+    <div className="flex w-full flex-wrap gap-2 px-3 pt-3" data-align="block-start">
+      {attachments.files.map((file) => (
+        <div
+          className="flex max-w-56 items-center gap-2 rounded-lg border bg-background py-1 pr-1 pl-1.5 text-xs"
+          key={file.id}
+        >
+          {file.mediaType.startsWith("image/") ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local object URL preview
+            <img alt="" className="size-6 rounded object-cover" src={file.url} />
+          ) : (
+            <FileTextIcon className="size-4 shrink-0 text-muted-foreground" />
+          )}
+          <span className="truncate">{file.filename ?? "file"}</span>
+          <button
+            aria-label={`Remove ${file.filename ?? "file"}`}
+            className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+            onClick={() => attachments.remove(file.id)}
+            type="button"
+          >
+            <XIcon className="size-3" />
+          </button>
+        </div>
+      ))}
+      {error ? <p className="w-full text-destructive text-xs">{error}</p> : null}
+    </div>
   );
 }
 

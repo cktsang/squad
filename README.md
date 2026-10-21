@@ -110,7 +110,7 @@ Then describe your idea. Models are routed through the Vercel AI Gateway; if you
 | | `npm run dev:web` | `npm run dev` |
 | --- | --- | --- |
 | Interface | Browser chat at `localhost:3000` (Next.js app in `apps/web/`) | Terminal UI |
-| Images, PDFs, files | Attach with the **+** button | Save in `.squad/assets/` and mention the path |
+| Images, PDFs, files | Paperclip button, drag and drop, or paste (up to 20 MB each) | Save in `.squad/assets/` and mention the path |
 | Questions and approvals | Buttons and forms | Typed answers |
 | Traces (`/traces`), `/login`, `/model` | No | Yes |
 
