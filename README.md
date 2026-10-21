@@ -103,7 +103,7 @@ cp .env.example .env.local   # then set SQUAD_TARGET
 npm run dev:web              # web chat at http://localhost:3000
 ```
 
-Then describe your idea. Models are routed through the Vercel AI Gateway; if you have not connected one yet, run `npm run dev` once and use `/login` in the terminal UI.
+Then describe your idea. Every agent calls Anthropic directly with `ANTHROPIC_API_KEY` from `.env` or `.env.local`, so usage and billing show up in the [Anthropic Console](https://console.anthropic.com), not the Vercel AI Gateway.
 
 ### Web chat or terminal
 

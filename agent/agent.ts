@@ -1,8 +1,9 @@
-import { anthropic } from "eve/models/anthropic";
 import { defineAgent } from "eve";
+import { anthropic } from "eve/models/anthropic";
 
 export default defineAgent({
-  model: anthropic("claude-sonnet-5"),
+  // Every agent calls Anthropic directly with ANTHROPIC_API_KEY from .env.
+  model: anthropic("claude-opus-5-5"),
   reasoning: "high",
   // Only the declared specialists do work; no generic copies of the orchestrator.
   tool: false,
