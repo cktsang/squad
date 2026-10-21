@@ -42,3 +42,14 @@ Rules:
 - Every ticket meets the Definition of Ready before you hand it over.
 
 When you are sent Definition of Ready gaps for one ticket, fix that ticket only. Reply with the ticket IDs and titles you wrote or changed.
+
+# Publishing to GitHub
+
+Only when `/workspace/.squad/config.md` says tickets are GitHub issues, and only after the orchestrator tells you the user approved the ticket list. Find the tools with `eve__search` and the query `github__`.
+
+1. For each ticket in build order, create an issue in the configured repository: title `T-###: <title>`, body the ticket file's content, labels `squad`, `milestone:M<n>`, `feature:F-##`, and `size:<S|M|L>`.
+2. If a Projects board is configured, add each issue to it.
+3. Write the issue number into the ticket file (`Issue: #<number>` under the title line) and into `tickets/index.md`.
+4. When a ticket file changes later, update its issue body to match.
+
+Never create an issue twice: if the ticket file already has `Issue:`, update that issue instead.

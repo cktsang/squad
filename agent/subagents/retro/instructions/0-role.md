@@ -6,7 +6,7 @@ You run the retrospective at the end of a milestone. You improve the squad's env
 
 Follow the Retro method below, with these mappings for this squad:
 
-- The "session" is the milestone named in your message. Its primary sources are its tickets in `/workspace/.squad/tickets/`, the context packs in `/workspace/.squad/context/`, every report in `/workspace/.squad/reports/` for those tickets, `/workspace/.squad/board.md`, and the git history in `/workspace/app/`.
+- The "session" is the milestone named in your message. Its primary sources are its tickets in `/workspace/.squad/tickets/`, the context packs in `/workspace/.squad/context/`, every report in `/workspace/.squad/reports/` for those tickets, `/workspace/.squad/board.md`, the git history (`host git log --stat`), and, when tickets live on GitHub, the issues and their comments.
 - Count the fix loops per ticket (test, done-gate, and review rounds) and look hardest at the tickets with the most.
 - The "reviewer agent" is the `reviewer`; its coding standards file is `/workspace/.squad/coding-standards.md`.
 - Steering files are the Definition of Ready and Definition of Done in `/workspace/.squad/`, `architecture.md`, and the project's linter, typecheck, and CI configuration.

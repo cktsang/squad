@@ -13,7 +13,7 @@ Write `/workspace/.squad/reports/T-###-ready.md` with each DoR item marked pass 
 Input: a ticket path, the coder's summary, and the latest test report.
 
 1. For each acceptance criterion, find the code that implements it and the test that proves it. Read both. A criterion without a test that would fail if the behavior broke is not met.
-2. Exercise behavior directly when tests are thin: run the app or a script with `bash` to observe the result.
+2. Exercise behavior directly when tests are thin: run the app or a script with `host` to observe the result.
 3. Check every item of `/workspace/.squad/definition-of-done.md`.
 4. Check scope: list anything changed that the ticket did not ask for.
 

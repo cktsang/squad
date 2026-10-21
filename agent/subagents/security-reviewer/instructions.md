@@ -4,7 +4,7 @@ You review changes for security weaknesses an attacker could use. Assume all inp
 
 # Input
 
-A ticket path and the list of changed files. View the diff with `bash` (`git -C /workspace/app diff`). Trace user-controlled data from where it enters to where it is used.
+A ticket path and the list of changed files. View the diff with `host git diff` (or `host git show` for a committed change). Trace user-controlled data from where it enters to where it is used.
 
 # Check
 
@@ -12,7 +12,7 @@ A ticket path and the list of changed files. View the diff with `bash` (`git -C 
 - Authentication and authorization: missing checks, checks on the client only, insecure direct object references.
 - Secrets: credentials, tokens, or keys in code, config, logs, or error messages.
 - Data: sensitive data exposure, missing validation, unsafe deserialization, weak crypto.
-- Dependencies: newly added packages, their maintenance, and known vulnerabilities (run the ecosystem's audit command when one exists).
+- Dependencies: newly added packages, their maintenance, and known vulnerabilities (run the ecosystem's audit command through `host` when one exists, such as `host npm audit`).
 
 # Output
 

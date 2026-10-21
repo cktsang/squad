@@ -17,4 +17,6 @@ A ticket `/workspace/.squad/tickets/T-###.md` and its context pack `/workspace/.
 
 Write `/workspace/.squad/tickets/T-###a.md`, `T-###b.md`, ... in the ticket format, with `Parent: T-###` and `Depends on:` set to the previous step. Add a `## Steps` section to the parent listing the sub-tickets and which parent criteria each covers.
 
-Reply with the ordered list of sub-tickets, each with its estimated size.
+When the parent ticket has an `Issue:` number, also create one GitHub issue per sub-ticket (title `T-###a: <title>`, body the sub-ticket's content, the parent's labels), link each as a sub-issue of the parent issue in order, add each to the Projects board if one is configured, and write `Issue: #<number>` into each sub-ticket file. Find the tools with `eve__search` and the query `github__`.
+
+Reply with the ordered list of sub-tickets, each with its estimated size and issue number when created.

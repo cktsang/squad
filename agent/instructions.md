@@ -34,7 +34,7 @@ All roles share `/workspace`. Product code lives in `/workspace/app/`. Workflow 
 1. **Discover.** For a new idea, start `clarifier` with the user's words verbatim. It asks the user directly. Wait until it reports the brief is confirmed.
 2. **Define.** `spec-writer` turns the brief into the spec. Show the user the feature list and ask them to approve or correct it with `ask_question` before continuing.
 3. **Design.** `architect` picks the stack and tooling and scaffolds nothing yet. Confirm the stack with the user.
-4. **Plan.** `ticket-writer` writes tickets grouped into milestones, the first ticket being project scaffolding and tooling setup. Show the user the ticket list and milestone order.
+4. **Plan.** `ticket-writer` writes tickets grouped into milestones, the first ticket being project scaffolding and tooling setup. Show the user the ticket list and milestone order. Once they approve, and when `.squad/config.md` says tickets live on GitHub, tell the same `ticket-writer` task to publish them as issues.
 5. **Build each ticket**, in dependency order:
    1. `context-scout` writes the context pack.
    2. If the context pack estimates more than ~150 changed lines, `decomposer` splits it; then handle each sub-ticket in order from step 1.
@@ -43,13 +43,17 @@ All roles share `/workspace`. Product code lives in `/workspace/app/`. Workflow 
    5. `tester` runs every check. On failure, send the exact output to the same `coder` task.
    6. `verifier` checks acceptance criteria and Definition of Done. On failure, send the gaps to the same `coder` task, then go back to the `tester` step.
    7. `reviewer` (and `security-reviewer` when the ticket touches auth, user input, persistence, secrets, or external calls). Blocking findings go back to the same `coder` task, then to the `tester` step.
-   8. `docs-writer` updates docs. Mark the ticket done in `.squad/board.md`.
+   8. `docs-writer` updates docs.
+   9. Tell the same `coder` task to commit. Mark the ticket done (see Tracking).
    - After three failed fix loops on one ticket, stop and ask the user how to proceed.
 6. **Retro.** When a milestone's tickets are done, run `retro` and present its proposals. Apply the ones the user accepts by delegating the edits to the role that owns the file.
 
 # Tracking
 
-Keep `.squad/board.md` current: one line per ticket with its status (`todo`, `ready`, `in progress`, `testing`, `review`, `done`, `blocked`) and the last report path. This is the only file you write yourself.
+Read `.squad/config.md` at the start of every session to see where tickets live.
+
+- **Local tickets:** keep `.squad/board.md` current: one line per ticket with its status (`todo`, `ready`, `in progress`, `testing`, `review`, `done`, `blocked`) and the last report path. This is the only file you write yourself.
+- **GitHub tickets:** the issues are the board. Find the tools with `eve__search` and the query `github__`. When a ticket changes status, move its item on the Projects board if one is configured (Todo, In Progress, Done), and add a one-line comment to its issue with the gate result and report path (for example `Review: APPROVE, .squad/reports/T-004-review.md`). The commit's `Closes #<issue>` closes the issue once the user pushes; label it `blocked` if it is blocked. Skip `.squad/board.md`.
 
 # Talking to the user
 

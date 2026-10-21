@@ -19,10 +19,30 @@ milestone done → retro
 
 The orchestrator asks you to approve the spec, the stack, and the ticket list before building. If a ticket fails its fix loop three times, it stops and asks you how to proceed.
 
-All roles share one sandbox workspace:
+The squad runs as a **sidecar**: this repo holds only the agent, and it works on a project in another folder. Nothing from this repo is copied into that project. Only the artifacts the squad produces (spec, tickets, decisions) are written there, in a `.squad/` folder.
 
-- `/workspace/app/`: the product code
-- `/workspace/.squad/`: workflow artifacts (`brief.md`, `spec.md`, `architecture.md`, `adr/`, `tickets/`, `context/`, `reports/`, `retro/`, `board.md`)
+## How the sidecar works
+
+```
+~/Projects/squad (this repo)          ~/Projects/my-app (your project)
+  agent/  .env.local                    src/ package.json ...
+     │                                  .squad/  brief, spec, tickets, reports
+     │  eve dev                            ▲   ▲
+     ▼                                     │   │
+  sandbox (virtual shell)                  │   │
+    /workspace/app     ── mounted ─────────┘   │   read-write
+    /workspace/.squad  ── mounted ─────────────┘   (= my-app/.squad)
+    host <cmd>         ── runs on your machine in my-app/
+```
+
+- **`SQUAD_TARGET`** in `.env.local` names the project folder. It is created if it does not exist, so you can start from an empty folder.
+- **Files:** every role works in one shared sandbox. The project folder is mounted at `/workspace/app` and the artifacts folder at `/workspace/.squad`, so edits land directly in your real files.
+- **Commands:** the sandbox's shell is virtual (just-bash). File commands such as `ls`, `grep`, and `sed` work, but real programs do not. Roles run those through `host`, for example `host npm test` or `host git diff`. `host` runs the program on your machine, inside the project folder, with the squad's own tokens removed from its environment.
+- **Artifacts:** `my-app/.squad/` is created with the Definition of Ready, Definition of Done, and a `.gitignore` that keeps the per-ticket `context/` and `reports/` out of git. Commit the rest with the project. Set `SQUAD_ARTIFACTS` to keep them elsewhere.
+- **Git:** the coder commits each finished ticket in the project, running `git init` first if needed. The squad never pushes; you review and push.
+- **Switching projects:** change `SQUAD_TARGET` and restart `npm run dev`. Each project keeps its own `.squad/`, so you can come back to it later.
+
+`host` commands are not sandboxed: they run as you, on your machine. Use the squad only on projects and ideas you trust it with.
 
 ## Roles and models
 
@@ -51,17 +71,24 @@ Rule of thumb: Opus for decisions made once that shape everything downstream (an
 agent/
 ├── agent.ts               orchestrator model config
 ├── instructions.md        orchestrator workflow
+├── instructions/workspace.ts  shared workspace rules (every role has one)
 ├── tools/ask_question.ts  approvals and questions to you
-├── lib/squad-write-file.ts  write_file limited to /workspace/.squad/
-├── sandbox/workspace/.squad/
-│   ├── definition-of-ready.md
-│   ├── definition-of-done.md
-│   └── board.md
+├── connections/github.ts  GitHub issues and Projects (optional)
+├── lib/
+│   ├── target.ts          reads SQUAD_* settings from .env.local
+│   ├── host-command.ts    the `host` command
+│   ├── github-connection.ts
+│   ├── squad-write-file.ts  write_file limited to /workspace/.squad/
+│   └── workspace-instructions.ts
+├── sandbox/
+│   ├── sandbox.ts         mounts the project and artifacts folders
+│   └── workspace/.squad/  seeds: Definition of Ready/Done, board.md
 └── subagents/<role>/
     ├── agent.ts           description, model, reasoning effort
     ├── sandbox.ts         shares the orchestrator's sandbox
-    ├── instructions.md    (or instructions/ for clarifier and retro)
-    └── tools/             role-specific tools
+    ├── instructions.md    (or instructions/*.md for clarifier and retro)
+    ├── tools/             role-specific tools
+    └── connections/       GitHub, for ticket-writer and decomposer
 ```
 
 Every role except `coder` and `docs-writer` can write only under `/workspace/.squad/`. They still have `bash`, so treat that limit as a guardrail rather than a security boundary.
@@ -72,14 +99,34 @@ Requires Node 24.
 
 ```bash
 npm ci
+cp .env.example .env.local   # then set SQUAD_TARGET
 npm run dev
 ```
 
 `eve dev` opens a terminal session. eve reuses an existing model connection or prompts you with `/login`; models are routed through the Vercel AI Gateway. Then describe your idea.
 
+## Tickets on GitHub (optional)
+
+By default, tickets are Markdown files in `.squad/tickets/` with a status table in `.squad/board.md`. To use GitHub instead, set these in `.env.local`:
+
+| Variable | Value |
+| --- | --- |
+| `SQUAD_GITHUB_REPO` | `owner/repo` of the project's repository |
+| `SQUAD_GITHUB_PROJECT` | Optional: number of a GitHub Projects board owned by the same owner |
+| `GITHUB_TOKEN` | A fine-grained token with Issues read/write on that repo, or a classic token with `repo` and `project` scopes when you use a Projects board |
+
+The squad then connects to GitHub's official MCP server, limited to the issues, labels, and projects toolsets:
+
+- After you approve the ticket list, the ticket-writer creates one issue per ticket, with labels for milestone, feature, and size, and adds it to the board.
+- The decomposer creates sub-issues under the parent issue.
+- The orchestrator comments each gate result on the issue and moves the board item. Commits say `Closes #<issue>`, so issues close when you push.
+- Calls that GitHub marks as destructive ask for your approval first.
+
+The ticket files stay in `.squad/tickets/` as the squad's working copy, each with its issue number.
+
 ## Customize
 
-- **Your team's standards:** edit `definition-of-ready.md` and `definition-of-done.md` in `agent/sandbox/workspace/.squad/`. The seed is copied when a new sandbox environment is prepared; an existing live sandbox keeps its copy.
+- **Your standards:** the Definition of Ready and Definition of Done are copied from `agent/sandbox/workspace/.squad/` into each new project's `.squad/`. Edit the seeds to change the default, or edit a project's copy to change only that project.
 - **A role's behavior:** edit `agent/subagents/<role>/instructions.md`.
 - **A role's model:** edit `model` and `reasoning` in `agent/subagents/<role>/agent.ts`.
 - **Coding standards for the reviewer:** have the squad create `/workspace/.squad/coding-standards.md`; the reviewer enforces it when present, and the retro proposes additions.
@@ -93,7 +140,6 @@ npm run dev
 | `npm run check:deps` | Dependency drift check only                  |
 | `npm run typecheck`  | TypeScript check                             |
 | `npm run build`      | Build the agent                              |
-| `npm run deploy`     | Deploy to Vercel                             |
 
 ## Dependencies are pinned
 
@@ -101,13 +147,9 @@ eve is in beta, and floating versions of `ai`/`@ai-sdk/*` or `@vercel/connect` h
 
 To upgrade, change one package at a time to an exact version, run `npm run check`, and commit `package.json` and `package-lock.json` together.
 
-## Deploy on Vercel
+## Local only
 
-```bash
-eve deploy
-```
-
-`eve deploy` links a Vercel project if needed and deploys to production. Before deploying, replace `placeholderAuth()` in `agent/channels/eve.ts` with your auth provider. See the [eve deployment docs](https://eve.dev/docs/guides/deployment/vercel).
+The sidecar mounts folders on your machine and runs `host` commands there, so it is meant for `npm run dev`, not `eve deploy`. A deployed version would need a different sandbox that clones the project from GitHub and opens pull requests.
 
 ## Learn more
 
