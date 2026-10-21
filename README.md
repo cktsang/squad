@@ -100,10 +100,23 @@ Requires Node 24.
 ```bash
 npm ci
 cp .env.example .env.local   # then set SQUAD_TARGET
-npm run dev
+npm run dev:web              # web chat at http://localhost:3000
 ```
 
-`eve dev` opens a terminal session. eve reuses an existing model connection or prompts you with `/login`; models are routed through the Vercel AI Gateway. Then describe your idea.
+Then describe your idea. Models are routed through the Vercel AI Gateway; if you have not connected one yet, run `npm run dev` once and use `/login` in the terminal UI.
+
+### Web chat or terminal
+
+| | `npm run dev:web` | `npm run dev` |
+| --- | --- | --- |
+| Interface | Browser chat at `localhost:3000` (Next.js app in `apps/web/`) | Terminal UI |
+| Images, PDFs, files | Attach with the **+** button | Save in `.squad/assets/` and mention the path |
+| Questions and approvals | Buttons and forms | Typed answers |
+| Traces (`/traces`), `/login`, `/model` | No | Yes |
+
+Both talk to the same agent and can run at the same time; the web app reuses a running `eve dev` server. Attached files are copied into the project's `.squad/assets/`, so every role and later session can see them.
+
+The web chat has no sign-in. It is reachable only on this machine, like the rest of the sidecar.
 
 ## Tickets on GitHub (optional)
 
@@ -135,7 +148,8 @@ The ticket files stay in `.squad/tickets/` as the squad's working copy, each wit
 
 | Command              | What it does                                 |
 | -------------------- | -------------------------------------------- |
-| `npm run dev`        | Start the local dev session                  |
+| `npm run dev:web`    | Start the web chat and the agent             |
+| `npm run dev`        | Start the terminal UI and the agent          |
 | `npm run check`      | Dependency drift check, typecheck, and build |
 | `npm run check:deps` | Dependency drift check only                  |
 | `npm run typecheck`  | TypeScript check                             |

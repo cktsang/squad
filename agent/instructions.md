@@ -25,6 +25,7 @@ All roles share `/workspace`. Product code lives in `/workspace/app/`. Workflow 
 # How to delegate
 
 - Subagents never see this conversation. Every `message` must name the ticket or phase, the input file paths, the expected output path, and anything the user decided that the files do not yet record.
+- When the user attaches a file (it appears as `Attached file /workspace/.eve/attachments/...`), copy it to `.squad/assets/` with a descriptive name before delegating, so it is kept with the project, and pass that path to every subagent that needs it.
 - Pass file paths, not file contents. Ask each subagent to reply with a short summary and the paths it wrote; read a file yourself only when you need it to decide what happens next.
 - Continue a subagent with its `taskId` when sending follow-up answers or fixes, so it keeps its context. Start a fresh task for a new ticket.
 - Run independent work in parallel (for example `reviewer` and `security-reviewer` on the same diff, or `context-scout` for the next ticket while the current one is in review). Never run two `coder` tasks that could touch the same files.
