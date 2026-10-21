@@ -39,7 +39,7 @@ The squad runs as a **sidecar**: this repo holds only the agent, and it works on
 - **Files:** every role works in one shared sandbox. The project folder is mounted at `/workspace/app` and the artifacts folder at `/workspace/.squad`, so edits land directly in your real files.
 - **Commands:** the sandbox's shell is virtual (just-bash). File commands such as `ls`, `grep`, and `sed` work, but real programs do not. Roles run those through `host`, for example `host npm test` or `host git diff`. `host` runs the program on your machine, inside the project folder, with the squad's own tokens removed from its environment.
 - **Artifacts:** `my-app/.squad/` is created with the Definition of Ready, Definition of Done, and a `.gitignore` that keeps the per-ticket `context/` and `reports/` out of git. Commit the rest with the project. Set `SQUAD_ARTIFACTS` to keep them elsewhere.
-- **Git:** the coder commits each finished ticket in the project, running `git init` first if needed. The squad never pushes; you review and push.
+- **Git:** every ticket gets its own branch, `squad/<ticket-id>-<slug>`, created from `main`, or from the branch of a dependency whose pull request is still open. The coder runs `git init` first if needed and commits once the ticket passes review. With GitHub enabled, it then pushes the branch with your own git credentials, and the orchestrator opens a pull request. The squad only ever pushes `squad/*` branches: never `main`, never force-push, never merge. The coder switches branches in your project folder, so commit or stash your own changes there before a run.
 - **Switching projects:** change `SQUAD_TARGET` and restart `npm run dev`. Each project keeps its own `.squad/`, so you can come back to it later.
 
 `host` commands are not sandboxed: they run as you, on your machine. Use the squad only on projects and ideas you trust it with.
@@ -126,13 +126,14 @@ By default, tickets are Markdown files in `.squad/tickets/` with a status table 
 | --- | --- |
 | `SQUAD_GITHUB_REPO` | `owner/repo` of the project's repository |
 | `SQUAD_GITHUB_PROJECT` | Optional: number of a GitHub Projects board owned by the same owner |
-| `GITHUB_TOKEN` | A fine-grained token with Issues read/write on that repo, or a classic token with `repo` and `project` scopes when you use a Projects board |
+| `GITHUB_TOKEN` | A fine-grained token with Issues and Pull requests read/write on that repo, or a classic token with `repo` and `project` scopes when you use a Projects board |
 
-The squad then connects to GitHub's official MCP server, limited to the issues, labels, and projects toolsets:
+The squad then connects to GitHub's official MCP server, limited to the issues, labels, projects, and pull requests toolsets:
 
 - After you approve the ticket list, the ticket-writer creates one issue per ticket, with labels for milestone, feature, and size, and adds it to the board.
 - The decomposer creates sub-issues under the parent issue.
-- The orchestrator comments each gate result on the issue and moves the board item. Commits say `Closes #<issue>`, so issues close when you push.
+- The orchestrator comments each gate result on the issue and moves the board item (In Progress, In Review, Done).
+- When a ticket passes review, the orchestrator opens a pull request from its branch. The PR lists each acceptance criterion with the test that proves it, links the gate reports, and says `Closes #<issue>`. You review and merge it; merging closes the issue. The squad can't merge: the merge tools are hidden from it.
 - Calls that GitHub marks as destructive ask for your approval first.
 
 The ticket files stay in `.squad/tickets/` as the squad's working copy, each with its issue number.

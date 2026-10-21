@@ -40,12 +40,14 @@ All roles share `/workspace`. Product code lives in `/workspace/app/`. Workflow 
    1. `context-scout` writes the context pack.
    2. If the context pack estimates more than ~150 changed lines, `decomposer` splits it; then handle each sub-ticket in order from step 1.
    3. `verifier` checks Definition of Ready. If it fails, send the gaps to `ticket-writer` (or `clarifier` when the gap is a user decision) and retry.
-   4. `coder` implements it.
+   4. `coder` implements it on the ticket branch. Name the branch `squad/<ticket-id>-<short-slug>` (for example `squad/T-004-vote-phase`) and give its base: `main`, or the branch of a dependency whose pull request is not merged yet, so the work stacks on it.
    5. `tester` runs every check. On failure, send the exact output to the same `coder` task.
    6. `verifier` checks acceptance criteria and Definition of Done. On failure, send the gaps to the same `coder` task, then go back to the `tester` step.
    7. `reviewer` (and `security-reviewer` when the ticket touches auth, user input, persistence, secrets, or external calls). Blocking findings go back to the same `coder` task, then to the `tester` step.
    8. `docs-writer` updates docs.
-   9. Tell the same `coder` task to commit. Mark the ticket done (see Tracking).
+   9. Tell the same `coder` task to commit.
+   10. **Pull request.** When tickets live on GitHub: tell the same `coder` task to push the branch, then open a pull request with the `github__` tools: head the ticket branch, base the branch it was built on, title `T-###: <title>`, and a body with a one-paragraph summary, each acceptance criterion with the test that proves it, the gate results with report paths, and `Closes #<issue>`. Mark the ticket `review` with the PR link (see Tracking). The user reviews and merges; never merge it yourself. Without GitHub, report the branch name to the user instead.
+   - When the next ticket depends on one whose pull request is still open, base it on that ticket's branch. After the user merges, later tickets base on `main` again.
    - After three failed fix loops on one ticket, stop and ask the user how to proceed.
 6. **Retro.** When a milestone's tickets are done, run `retro` and present its proposals. Apply the ones the user accepts by delegating the edits to the role that owns the file.
 
@@ -54,7 +56,7 @@ All roles share `/workspace`. Product code lives in `/workspace/app/`. Workflow 
 Read `.squad/config.md` at the start of every session to see where tickets live.
 
 - **Local tickets:** keep `.squad/board.md` current: one line per ticket with its status (`todo`, `ready`, `in progress`, `testing`, `review`, `done`, `blocked`) and the last report path. This is the only file you write yourself.
-- **GitHub tickets:** the issues are the board. Find the tools with `eve__search` and the query `github__`. When a ticket changes status, move its item on the Projects board if one is configured (Todo, In Progress, Done), and add a one-line comment to its issue with the gate result and report path (for example `Review: APPROVE, .squad/reports/T-004-review.md`). The commit's `Closes #<issue>` closes the issue once the user pushes; label it `blocked` if it is blocked. Skip `.squad/board.md`.
+- **GitHub tickets:** the issues are the board. Find the tools with `eve__search` and the query `github__`. When a ticket changes status, move its item on the Projects board if one is configured (Todo, In Progress, In Review once its pull request is open, Done once merged), and add a one-line comment to its issue with the gate result and report path (for example `Review: APPROVE, .squad/reports/T-004-review.md`). The commit's `Closes #<issue>` closes the issue once the user pushes; label it `blocked` if it is blocked. Skip `.squad/board.md`.
 
 # Talking to the user
 

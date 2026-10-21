@@ -10,4 +10,5 @@ A ticket is done when all of these hold:
 - [ ] No secrets, credentials, or personal data in code, config, or logs.
 - [ ] Reviewer verdict is APPROVE; security verdict is PASS when a security review was required.
 - [ ] README and CHANGELOG reflect the change.
-- [ ] The change is committed in `/workspace/app` with a message referencing the ticket ID.
+- [ ] The change is committed on its own `squad/<ticket-id>-…` branch with a message referencing the ticket ID.
+- [ ] When tickets live on GitHub: the branch is pushed and a pull request is open, linking the issue with `Closes #<issue>`.
